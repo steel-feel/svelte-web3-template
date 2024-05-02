@@ -348,6 +348,13 @@
     "@biconomy/paymaster" "^4.1.1"
     viem "^2.7.12"
 
+"@biconomy/account@^4.2.0":
+  version "4.2.0"
+  resolved "https://registry.yarnpkg.com/@biconomy/account/-/account-4.2.0.tgz#fcd5f17c441f5068dbf5d0703627a93fb0f47e9f"
+  integrity sha512-k7bpr5HstDhYOWQBZgBxOw+FHLpb8wPgokprvQbNKDA4Fc4iyiLKsVb4sLKqeyYm37CnhVp30Zy/eda87ph5DQ==
+  dependencies:
+    merkletreejs "^0.3.11"
+
 "@biconomy/bundler@^3.1.0-alpha.0", "@biconomy/bundler@^3.1.3":
   version "3.1.3"
   resolved "https://registry.yarnpkg.com/@biconomy/bundler/-/bundler-3.1.3.tgz#34054947f7ee8062dd87f77efb240268a6640ba5"
