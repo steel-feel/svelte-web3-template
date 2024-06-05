@@ -4,7 +4,7 @@
   import { SCW } from "@arcana/scw";
   import { AuthProvider } from "@arcana/auth"; //From npm
 
-  import { createSmartAccountClient } from "@biconomy/account"
+  import { createSmartAccountClient } from "@biconomy/account";
 
   const erc20abi = [
     {
@@ -354,16 +354,19 @@
   onMount(arcanaWallet);
   let auth;
   let scWallet;
-
+  // let arcana_app_id = "xar_live_2f1b0f49b5682f9cab5512bf51d022f25723518a";
+  // let arcana_app_id = "xar_live_e553c5570f9c4768a2656da70ecc6fd4747e7214";
+  // let arcana_app_id = "xar_test_7c27043e6263eff62c6b3a348d613f5b6c9f2527";
+  // let arcana_app_id = "xar_live_10df430d374e1e9505615958f9965b7fbeb894d7";
   /// ~~~~~~~ Arcana Wallet ~~~~~~~~~
 
   async function arcanaWallet() {
     auth = new AuthProvider(
-      "xar_dev_5e2f2f407a80b9c29df3942038f6b100c31e911f", // App client ID
+      arcana_app_id, // App client ID
       {
         setWindowProvider: true, // default: false, window.ethereum not set
         connectOptions: {
-          compact: true, // default: false, regular plug-and-play login UI
+          compact: false, // default: false, regular plug-and-play login UI
         },
       },
     );
@@ -375,6 +378,8 @@
     const arcanaProvider = await auth.connect();
     provider = new ethers.providers.Web3Provider(arcanaProvider);
     wallet = await provider.getSigner();
+
+    userAddress = await wallet.getAddress();
   }
 
   async function sendTx() {
@@ -390,16 +395,14 @@
 
   async function initGasLess() {
     scWallet = new SCW();
-    await scWallet.init(
-      "xar_test_0c68fd59a9862ca932439ead949ce94ac85ccfcd",
-      wallet,
-    );
+    await scWallet.init(arcana_app_id, wallet);
     console.log("Address: " + scWallet.getSCWAddress());
   }
+
   async function sendGaslessTx() {
     let amount = 0.1;
 
-    const erc20Address = "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359";
+    const erc20Address = "0x06A0F0fa38AE42b7B3C8698e987862AfA58e90D9";
     const toAddress = "0x7a8713E21e7434dC5441Fb666D252D13F380a97d";
     const Erc20Interface = new ethers.utils.Interface(erc20abi);
 
@@ -415,14 +418,16 @@
       data: encodedData,
     };
 
-    let tx = await scWallet.doTx(tx1);
-    await tx.wait();
-    console.log(`Transfer done ${tx.userOpHash}`);
+    for (let i = 0; i < 5; i++) {
+      let tx = await scWallet.doTx(tx1);
+      await tx.wait();
+      console.log(`Transfer done ${tx.userOpHash}`);
+    }
   }
 
   /// ~~~~~~~~~~ Biconomy gasless ~~~~~~
- let biconomySmartAccount;
- let scwAddress = ""
+  let biconomySmartAccount;
+  let scwAddress = "";
   async function scwv4() {
     biconomySmartAccount = await createSmartAccountClient({
       signer: wallet,
@@ -438,15 +443,15 @@
   }
 
   async function approveBicoSCW() {
-    const toAddress = "0x7a8713E21e7434dC5441Fb666D252D13F380a97d"
+    const toAddress = "0x7a8713E21e7434dC5441Fb666D252D13F380a97d";
     //USDT Arbitrum Sepolia 0x9aA40Cc99973d8407a2AE7B2237d26E615EcaFd2
-    const erc20Address = "0x9aA40Cc99973d8407a2AE7B2237d26E615EcaFd2"
+    const erc20Address = "0x9aA40Cc99973d8407a2AE7B2237d26E615EcaFd2";
     const tokenContract = new ethers.Contract(
       // polygon  usdc address
       erc20Address,
       erc20abi,
     );
-    const usdcAmount =    ethers.utils.parseEther("0.1")
+    const usdcAmount = ethers.utils.parseEther("0.1");
     const { data } = await tokenContract.populateTransaction.approve(
       toAddress,
       usdcAmount,
@@ -457,7 +462,7 @@
       data,
     };
 
-      let userOp = await biconomySmartAccount.buildUserOp([tx1]);
+    let userOp = await biconomySmartAccount.buildUserOp([tx1]);
     console.log(`asdasa ${JSON.stringify(userOp)}`);
 
     userOp.paymasterAndData =
@@ -483,15 +488,18 @@
     {/if}
   </h2>
 
-  <button on:click={initGasLess}>Connect Gasless Wallet</button>
   <button on:click={connectArcana}>Connect Arcana</button>
+  <button on:click={initGasLess}>Connect Gasless Wallet</button>
+  <br />
   <button on:click={sendTx}>Send Normal Wallet</button>
   <button on:click={sendGaslessTx}>Send Gasless Transaction</button>
 
-<!-- Bico SCW -->
+  <!-- Bico SCW -->
+  <br />
+  <h4>Bico SCW</h4>
   <button on:click={scwv4}>Init Bico SCW</button>
   <button on:click={approveBicoSCW}>Bico SCW Txn</button>
   {#if scwAddress.length > 0}
-  <h3>SCW Address {scwAddress}</h3>
+    <h3>SCW Address {scwAddress}</h3>
   {/if}
 </main>

@@ -112,10 +112,10 @@
     penpal "^6.0.1"
     validator "^13.11.0"
 
-"@arcana/scw@^0.0.35":
-  version "0.0.35"
-  resolved "https://registry.yarnpkg.com/@arcana/scw/-/scw-0.0.35.tgz#d12b2c82b9b41a50b8909bc5d14bd1191811527f"
-  integrity sha512-ZEzh7hitol86ZptZM+z07tWpd3AUYo7+AcF4IXcPynhMLk9Hffum2FYkPfOw1ieCEi5WytXJG4CdUIiEanFagg==
+"@arcana/scw@^0.0.36":
+  version "0.0.36"
+  resolved "https://registry.yarnpkg.com/@arcana/scw/-/scw-0.0.36.tgz#b23e2006584d78b4ab7c18e805a0a21202e730f0"
+  integrity sha512-3umIenH/oj+z1LoaAOLoGJnk91ZqduG9hBv0rUfJeX65fZ9wQoKyD6EAKiwzbxv/oTkwyeJsfX+o4fUFFGRG3g==
   dependencies:
     "@arcana/scw" "^0.0.8"
     "@biconomy/account" "^4.1.1"
