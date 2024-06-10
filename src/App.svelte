@@ -1,10 +1,11 @@
 <script>
-  import { ethers } from "ethers";
+  import { parseEther, BrowserProvider, Interface, Contract } from "ethers";
   import { onMount } from "svelte";
-  import { SCW } from "@arcana/scw";
+  import {SCW} from "@arcana/scw"; //From npm
   import { AuthProvider } from "@arcana/auth"; //From npm
 
   import { createSmartAccountClient } from "@biconomy/account";
+    import { debug } from "svelte/internal";
 
   const erc20abi = [
     {
@@ -343,7 +344,7 @@
   async function connectWallet() {
     //@ts-ignore
     const windowEth = window.ethereum;
-    provider = new ethers.providers.Web3Provider(windowEth);
+    provider = new BrowserProvider(windowEth);
 
     await provider.send("eth_requestAccounts", []);
     wallet = await provider.getSigner();
@@ -358,6 +359,7 @@
   // let arcana_app_id = "xar_live_e553c5570f9c4768a2656da70ecc6fd4747e7214";
   // let arcana_app_id = "xar_test_7c27043e6263eff62c6b3a348d613f5b6c9f2527";
   // let arcana_app_id = "xar_live_10df430d374e1e9505615958f9965b7fbeb894d7";
+  let arcana_app_id = "xar_dev_9ace66ce806cdf98ad45d6d09ef57172201e4f1f"; // Arbitrum sepolia bico paymaster
   /// ~~~~~~~ Arcana Wallet ~~~~~~~~~
 
   async function arcanaWallet() {
@@ -371,21 +373,24 @@
       },
     );
 
-    await auth.init();
+    auth = await auth.init();
+   
   }
 
   async function connectArcana() {
     const arcanaProvider = await auth.connect();
-    provider = new ethers.providers.Web3Provider(arcanaProvider);
+    provider = new BrowserProvider(arcanaProvider);
     wallet = await provider.getSigner();
 
     userAddress = await wallet.getAddress();
+
+    console.log("Auth", auth);
   }
 
   async function sendTx() {
     const tx = await wallet.sendTransaction({
       to: "0x7a8713E21e7434dC5441Fb666D252D13F380a97d",
-      value: ethers.utils.parseEther("0.00001"),
+      value: parseEther("0.00001"),
     });
 
     console.log({ tx });
@@ -395,7 +400,8 @@
 
   async function initGasLess() {
     scWallet = new SCW();
-    await scWallet.init(arcana_app_id, wallet);
+    console.log("window.arcana.provider", window.arcana.provider);
+    await scWallet.init(arcana_app_id, window.arcana.provider);
     console.log("Address: " + scWallet.getSCWAddress());
   }
 
@@ -404,11 +410,11 @@
 
     const erc20Address = "0x06A0F0fa38AE42b7B3C8698e987862AfA58e90D9";
     const toAddress = "0x7a8713E21e7434dC5441Fb666D252D13F380a97d";
-    const Erc20Interface = new ethers.utils.Interface(erc20abi);
+    const Erc20Interface = new Interface(erc20abi);
 
     const encodedData = Erc20Interface.encodeFunctionData("approve", [
       toAddress,
-      ethers.utils.parseEther(amount + ""),
+      parseEther(amount + ""),
     ]);
 
     // You need to create transaction objects of the following interface
@@ -418,11 +424,12 @@
       data: encodedData,
     };
 
-    for (let i = 0; i < 5; i++) {
+    // for (let i = 0; i < 5; i++) {
       let tx = await scWallet.doTx(tx1);
       await tx.wait();
       console.log(`Transfer done ${tx.userOpHash}`);
-    }
+    // }
+
   }
 
   /// ~~~~~~~~~~ Biconomy gasless ~~~~~~
@@ -432,7 +439,7 @@
     biconomySmartAccount = await createSmartAccountClient({
       signer: wallet,
       bundlerUrl:
-        "https://bundler.biconomy.io/api/v2/421614/nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f44", // From dashboard.biconomy.io
+        "https://bundler.biconomy.io/api/v2/97/nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f44", // From dashboard.biconomy.io
     });
 
     // smartAccount.
@@ -442,17 +449,43 @@
     });
   }
 
-  async function approveBicoSCW() {
+  async function buildUserOP(){
     const toAddress = "0x7a8713E21e7434dC5441Fb666D252D13F380a97d";
     //USDT Arbitrum Sepolia 0x9aA40Cc99973d8407a2AE7B2237d26E615EcaFd2
     const erc20Address = "0x9aA40Cc99973d8407a2AE7B2237d26E615EcaFd2";
-    const tokenContract = new ethers.Contract(
+    const tokenContract = new Contract(
       // polygon  usdc address
       erc20Address,
       erc20abi,
     );
-    const usdcAmount = ethers.utils.parseEther("0.1");
-    const { data } = await tokenContract.populateTransaction.approve(
+    const usdcAmount = parseEther("0.1");
+    const { data } = await tokenContract.approve.populateTransaction(
+      toAddress,
+      usdcAmount,
+    );
+    const tx1 = {
+      to: tokenContract.address, //erc20 token address
+      value: "0",
+      data,
+    };
+
+    let userOp = await biconomySmartAccount.buildUserOp([tx1]);
+    console.log(`asdasa ${JSON.stringify(userOp)}`);
+    
+    
+  }
+
+  async function approveBicoSCW() {
+    const toAddress = "0x7a8713E21e7434dC5441Fb666D252D13F380a97d";
+    //USDT Arbitrum Sepolia 0x9aA40Cc99973d8407a2AE7B2237d26E615EcaFd2
+    const erc20Address = "0x9aA40Cc99973d8407a2AE7B2237d26E615EcaFd2";
+    const tokenContract = new Contract(
+      // polygon  usdc address
+      erc20Address,
+      erc20abi,
+    );
+    const usdcAmount = parseEther("0.1");
+    const { data } = await tokenContract.approve.populateTransaction(
       toAddress,
       usdcAmount,
     );
@@ -498,6 +531,7 @@
   <br />
   <h4>Bico SCW</h4>
   <button on:click={scwv4}>Init Bico SCW</button>
+  <button on:click={buildUserOP}>Build User OP</button>
   <button on:click={approveBicoSCW}>Bico SCW Txn</button>
   {#if scwAddress.length > 0}
     <h3>SCW Address {scwAddress}</h3>
