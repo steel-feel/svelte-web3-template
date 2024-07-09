@@ -11,7 +11,6 @@
   "dependencies": {
     "@arcana/auth": "1.0.11-beta.1",
     "@arcana/scw": "/Users/himank/arcana/scw/",
-    "@biconomy/account": "^4.2.0",
     "ethers": "6.13.0",
     "vite-plugin-node-polyfills": "^0.7.0"
   },

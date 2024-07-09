@@ -7,22 +7,10 @@
     ethers,
   } from "ethers";
   import { onMount } from "svelte";
-  
-  import { SCW } from "@arcana/scw"; //From npm
+
+  import * as SCW from "@arcana/scw"; //From npm
 
   import { AuthProvider } from "@arcana/auth"; //From npm
-
-  import { custom, createPublicClient, type EIP1193Provider } from "viem";
-
-  import {
-    createSmartAccountClient,
-    BiconomySmartAccountV2,
-    DEFAULT_SESSION_KEY_MANAGER_MODULE,
-    createSession,
-    getRandomSigner,
-    createSessionSmartAccountClient,
-    getSingleSessionTxParams,
-  } from "@biconomy/account";
 
   const erc20abi = [
     {
@@ -391,6 +379,8 @@
     );
 
     auth = await auth.init();
+
+   
   }
 
   async function connectArcana() {
@@ -401,17 +391,6 @@
     userAddress = await wallet.getAddress();
     //@ts-ignore
     window.w = wallet as SCW;
-  }
-
-  async function connectViem() {
-    const arcanaProvider = (await auth.connect()) as EIP1193Provider;
-    const publicClient = createPublicClient({
-      transport: custom(arcanaProvider),
-    });
-    const publicClientEth = createPublicClient({
-      transport: custom(window.ethereum),
-    });
-
   }
 
   async function sendTx() {
@@ -430,7 +409,7 @@
     //@ts-ignore
     console.log("window.arcana.provider", window.arcana.provider);
     //@ts-ignore
-    await scWallet.init(arcana_app_id, window.arcana.provider);
+    await scWallet.init(arcana_app_id, window.arcana.provider, undefined);
     scwAddress = await scWallet.getSCWAddress();
     //@ts-ignore
     window.scwi = scWallet;
@@ -441,7 +420,7 @@
     let amount = inputValue;
 
     // const erc20Address = "0x06A0F0fa38AE42b7B3C8698e987862AfA58e90D9";
-    const erc20Address = USDC_BSC_TESTNET;
+    const erc20Address = getErc20Contract(scWallet.chain_id);
     const toAddress = "0x7a8713E21e7434dC5441Fb666D252D13F380a97d";
     const Erc20Interface = new Interface(erc20abi);
 
@@ -465,78 +444,7 @@
   }
 
   /// ~~~~~~~~~~ Biconomy gasless ~~~~~~
-  let biconomySmartAccount;
   let scwAddress = "";
-  async function scwv4() {
-    biconomySmartAccount = await createSmartAccountClient({
-      signer: wallet,
-      bundlerUrl:
-        "https://bundler.biconomy.io/api/v2/97/nJPK7B3ru.dd7f7861-190d-41bd-af80-6877f74b8f44", // From dashboard.biconomy.io
-    });
-
-    // smartAccount.
-    // debugger;
-    scwAddress = await biconomySmartAccount.getAccountAddress({
-      index: 0,
-    });
-  }
-
-  async function buildUserOP() {
-    const toAddress = "0x7a8713E21e7434dC5441Fb666D252D13F380a97d";
-    //USDT Arbitrum Sepolia 0x9aA40Cc99973d8407a2AE7B2237d26E615EcaFd2
-    const erc20Address = "0x9aA40Cc99973d8407a2AE7B2237d26E615EcaFd2";
-    const tokenContract = new Contract(
-      // polygon  usdc address
-      erc20Address,
-      erc20abi,
-    );
-    const usdcAmount = parseEther("0.1");
-    const { data } = await tokenContract.approve.populateTransaction(
-      toAddress,
-      usdcAmount,
-    );
-    const tx1 = {
-      to: tokenContract.address, //erc20 token address
-      value: "0",
-      data,
-    };
-
-    let userOp = await biconomySmartAccount.buildUserOp([tx1]);
-    console.log(`asdasa ${JSON.stringify(userOp)}`);
-  }
-
-  async function approveBicoSCW() {
-    const toAddress = "0x7a8713E21e7434dC5441Fb666D252D13F380a97d";
-    //USDT Arbitrum Sepolia 0x9aA40Cc99973d8407a2AE7B2237d26E615EcaFd2
-    const erc20Address = "0x9aA40Cc99973d8407a2AE7B2237d26E615EcaFd2";
-    const tokenContract = new Contract(
-      // polygon  usdc address
-      erc20Address,
-      erc20abi,
-    );
-    const usdcAmount = parseEther("0.1");
-    const { data } = await tokenContract.approve.populateTransaction(
-      toAddress,
-      usdcAmount,
-    );
-    const tx1 = {
-      to: tokenContract.address, //erc20 token address
-      value: "0",
-      data,
-    };
-
-    let userOp = await biconomySmartAccount.buildUserOp([tx1]);
-    console.log(`asdasa ${JSON.stringify(userOp)}`);
-
-    userOp.paymasterAndData =
-      "0xC8d7b368D47994F4fC300C6FF2958d7E990e37D4000000000000000000000000C8d7b368D47994F4fC300C6FF2958d7E990e37D4";
-
-    const userOpResponse = await biconomySmartAccount.sendUserOp(userOp);
-
-    console.log("userOpHash", userOpResponse);
-    const { receipt } = await userOpResponse.wait(1);
-    console.log("txHash", receipt.transactionHash);
-  }
 
   type CreateSessionParam = {
     contractAddress: string;
@@ -549,128 +457,13 @@
   let sess;
   async function initSession() {
     sess = scWallet.initSession({
-      storageType: StorageType.LOCAL,
+      storageType: 0,
     });
   }
   const USDC_ARB_SEPOLIA = "0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d";
   const USDC_BSC_TESTNET = "0x64544969ed7EBf5f083679233325356EbE738930";
 
-  async function crSession() {
-    /// SDK Tip : get a Signer from sessionStorage, if not create a signer
-    const sData = await getRandomSigner();
-    // const ArbitrumSepoliaRpc = "https://rpc.ankr.com/arbitrum_sepolia"
-    const BnbtestnetRpc = "https://bsc-testnet.public.blastapi.io";
-
-    await scWallet.session.addSigner(null, {
-      id: 97,
-      rpcUrls: {
-        97: BnbtestnetRpc,
-        default: {
-          http: [BnbtestnetRpc],
-        },
-      },
-    });
-
-    const policy = [
-      {
-        /** The address of the sessionKey upon which the policy is to be imparted */
-        sessionKeyAddress: sData.pbKey,
-        /** The address of the contract to be included in the policy */
-        contractAddress: USDC_ARB_SEPOLIA,
-        /** The specific function selector from the contract to be included in the policy */
-        functionSelector: "transfer(address,uint256)",
-        /** The list of rules which make up the policy */
-        rules: [],
-        /** The time interval within which the session is valid. Setting both to 0 will keep a session alive indefinitely */
-        interval: {
-          validUntil: 0,
-          validAfter: 0,
-        },
-        /** The maximum value that can be transferred in a single transaction */
-        valueLimit: 0n,
-      },
-    ];
-
-    //@ts-ignore
-    const { wait, session } = await createSession(
-      scWallet.smart_account,
-      policy,
-      scWallet.session,
-    );
-
-    const {
-      receipt: { transactionHash },
-      success,
-    } = await wait();
-
-    console.log(
-      `session ID ${JSON.stringify(session)} txHash ${transactionHash} success ${success}`,
-    );
-
-    await scWallet.session.updateSessionStatus(
-      {
-        sessionID: session.sessionIDInfo[0],
-      },
-      "ACTIVE",
-    );
-  }
-  async function doSessionTx() {
-    const emulatedUsersSmartAccount = await createSessionSmartAccountClient(
-      {
-        accountAddress: scWallet.scwAddress, // Dapp can set the account address on behalf of the user
-        bundlerUrl: scWallet.smart_account.bundler.getBundlerUrl(),
-        chainId: scWallet.chain_id,
-      },
-      scWallet.session, // Storage client, full Session or simply the smartAccount address if using default storage for your environment
-    );
-
-    const amount = parseEther("100");
-
-    const Erc20Interface = new Interface(erc20abi);
-    const toAddress = "0x7a8713E21e7434dC5441Fb666D252D13F380a97d";
-    const encodedData = Erc20Interface.encodeFunctionData("transfer", [
-      toAddress,
-      amount,
-    ]);
-
-    const sendErc20Tx = {
-      to: USDC_BSC_TESTNET,
-      data: encodedData,
-    };
-    const BnbtestnetRpc = "https://bsc-testnet.public.blastapi.io";
-
-    const params = await getSingleSessionTxParams(
-      {
-        sessionIDInfo: ["b5d0409687"],
-        sessionStorageClient: scWallet.session,
-      },
-      {
-        id: 97,
-        rpcUrls: {
-          97: BnbtestnetRpc,
-          default: {
-            http: [BnbtestnetRpc],
-          },
-        },
-      },
-      0, // index of the relevant policy leaf to the tx
-    );
-
-    const { wait } = await emulatedUsersSmartAccount.sendTransaction(
-      sendErc20Tx,
-      {
-        ...params,
-      },
-    );
-
-    const receipt = await wait();
-
-    console.log(` 
-    userOpHash : ${receipt.userOpHash} 
-    txhash : ${receipt.receipt.transactionHash}`);
-  }
-
-// ~~~~ SCW SDK ~~~~~
+  // ~~~~ SCW SDK ~~~~~
 
   async function crScwSession() {
     let contractAddress;
@@ -737,6 +530,52 @@
     await scWallet.doSessionTx(sendErc20Tx);
   }
 
+  function getErc20Contract(chainId: number) {
+    let contractAddress;
+
+    switch (chainId) {
+      case 97:
+        contractAddress = USDC_BSC_TESTNET;
+        break;
+      case 421614:
+        contractAddress = USDC_ARB_SEPOLIA;
+        break;
+      default:
+        contractAddress = USDC_ARB_SEPOLIA;
+    }
+
+    return contractAddress;
+  }
+
+  async function scwTx2() {
+    let amount = inputValue;
+
+    const erc20Address = getErc20Contract(scWallet.chain_id);
+    const toAddress = "0x7a8713E21e7434dC5441Fb666D252D13F380a97d";
+    const Erc20Interface = new Interface(erc20abi);
+
+    const encodedData = Erc20Interface.encodeFunctionData("transfer", [
+      toAddress,
+      BigInt(amount),
+    ]);
+
+    // You need to create transaction objects of the following interface
+    const tx1 = {
+      from: scWallet.getSCWAddress(),
+      to: erc20Address, // destination smart contract address
+      data: encodedData,
+    };
+
+    /// Normal txn
+    // let tx = await scWallet.doTx(tx1);
+    
+    /// Session txn
+    let tx = await scWallet.doTx(tx1);
+    tx = await tx.wait();
+    console.log(`Transfer done ${tx.userOpHash}`);
+  }
+
+
 </script>
 
 <main>
@@ -755,20 +594,16 @@
   {/if}
   <button on:click={connectArcana}>Connect Arcana</button>
   <button on:click={sendTx}>Send Normal Wallet</button>
-  <button on:click={connectViem}>Connect Viem Wallet</button>
-
-  <br />
-  <h4>Biconomy</h4>
-  <button on:click={initGasLess}>Init Gasless Wallet</button>
-  <button on:click={crSession}>Create Session</button>
-  <button on:click={doSessionTx}>Send Session Txn</button>
 
   <br />
   <h5>Arcana SCW method</h5>
+  <button on:click={initGasLess}>Init Gasless Wallet</button>
   <button on:click={initSession}>Init Session</button>
   <button on:click={sendGaslessTx}>Send Gasless Transaction</button>
   <button on:click={crScwSession}>Create Session through SCW SDK</button>
   <button on:click={scwSessionTx}>Send Session Txn through SCW SDK</button>
+
+  <button on:click={scwTx2}>✨ doTx2</button>
 
   <br />
 
@@ -777,11 +612,4 @@
     <div>Value</div>
     <input type="text" bind:value={inputValue} />
   </div>
-
-  <!-- Bico SCW -->
-  <br />
-  <h4>Bico SCW</h4>
-  <button on:click={scwv4}>Init Bico SCW</button>
-  <button on:click={buildUserOP}>Build User OP</button>
-  <button on:click={approveBicoSCW}>Bico SCW Txn</button>
 </main>
