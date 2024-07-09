@@ -8,7 +8,7 @@
   } from "ethers";
   import { onMount } from "svelte";
 
-  import * as SCW from "@arcana/scw"; //From npm
+  import { SCW } from "@arcana/scw"; //From npm
 
   import { AuthProvider } from "@arcana/auth"; //From npm
 
