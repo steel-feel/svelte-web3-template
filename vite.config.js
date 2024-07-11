@@ -6,6 +6,6 @@ import { nodePolyfills } from "vite-plugin-node-polyfills";
 export default defineConfig({
   plugins: [svelte(), nodePolyfills()],
   resolve: {
-    preserveSymlinks: true,
+    preserveSymlinks: false,
   },
 })
