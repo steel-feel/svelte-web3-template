@@ -359,7 +359,7 @@
   }
   onMount(arcanaWallet);
   let auth;
-  let scWallet;
+  let scWallet: SCW;
   // let arcana_app_id = "xar_live_2f1b0f49b5682f9cab5512bf51d022f25723518a";
   // let arcana_app_id = "xar_live_e553c5570f9c4768a2656da70ecc6fd4747e7214";
   // let arcana_app_id = "xar_test_7c27043e6263eff62c6b3a348d613f5b6c9f2527";
@@ -379,8 +379,6 @@
     );
 
     auth = await auth.init();
-
-   
   }
 
   async function connectArcana() {
@@ -547,7 +545,7 @@
     return contractAddress;
   }
 
-  async function scwTx2() {
+  async function scwTx() {
     let amount = inputValue;
 
     const erc20Address = getErc20Contract(scWallet.chain_id);
@@ -568,48 +566,62 @@
 
     /// Normal txn
     // let tx = await scWallet.doTx(tx1);
-    
+
     /// Session txn
-    let tx = await scWallet.doTx(tx1);
+    let tx = await scWallet.doTx(tx1, {
+      session: true,
+    });
     tx = await tx.wait();
     console.log(`Transfer done ${tx.userOpHash}`);
   }
-
-
 </script>
 
 <main>
-  <h1>Web3 Svelte template</h1>
-
-  <h2>
-    logged in user
-    {#if userAddress}
-      <span>{userAddress}</span>
-    {:else}
-      <span> Wallet not connected</span>
+  <article>
+    <header><h2>Wallet stats</h2></header>
+    <h2>
+      User Address:
+      {#if userAddress}
+        <span>{userAddress}</span>
+      {:else}
+        <span> Wallet not connected</span>
+      {/if}
+    </h2>
+    {#if scwAddress.length > 0}
+      <h3>SCW Address {scwAddress}</h3>
     {/if}
-  </h2>
-  {#if scwAddress.length > 0}
-    <h3>SCW Address {scwAddress}</h3>
-  {/if}
-  <button on:click={connectArcana}>Connect Arcana</button>
-  <button on:click={sendTx}>Send Normal Wallet</button>
+  </article>
+  <article>
+    <header><h5>Basic wallet methods</h5></header>
+    <button on:click={connectArcana}>Connect Arcana</button>
+    <button on:click={sendTx}>Send Normal Wallet</button>
+  </article>
 
-  <br />
-  <h5>Arcana SCW method</h5>
-  <button on:click={initGasLess}>Init Gasless Wallet</button>
-  <button on:click={initSession}>Init Session</button>
-  <button on:click={sendGaslessTx}>Send Gasless Transaction</button>
-  <button on:click={crScwSession}>Create Session through SCW SDK</button>
-  <button on:click={scwSessionTx}>Send Session Txn through SCW SDK</button>
+  <article>
+    <header><h5>Arcana SCW method</h5></header>
+    <button on:click={initGasLess}>Init Gasless Wallet</button>
+    <button on:click={initSession}>Init Session</button>
+    <button on:click={sendGaslessTx}>Send SCW Transaction</button>
+    <button on:click={crScwSession}>Create Session through SCW SDK</button>
+    <button on:click={scwSessionTx}>Send Session Txn through SCW SDK</button>
+    <button on:click={scwTx}>✨ Txn using session</button>
+  </article>
 
-  <button on:click={scwTx2}>✨ doTx2</button>
+  <article style="width: 50%;">
+    <header><h6>Values</h6></header>
+    <form>
+      <fieldset>
+        <label>
+          Amount
+          <input
+            name="amount"
+            placeholder="Amount"
+            type="text"
+            bind:value={inputValue}
+          />
+        </label>
+      </fieldset>
+    </form>
+  </article>
 
-  <br />
-
-  <h5>Variables</h5>
-  <div>
-    <div>Value</div>
-    <input type="text" bind:value={inputValue} />
-  </div>
 </main>
