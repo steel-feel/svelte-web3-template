@@ -8,339 +8,11 @@
   } from "ethers";
   import { onMount } from "svelte";
 
-  import { SCW } from "@arcana/scw"; //From npm
+  import { SCW,PaymasterMode, StorageType, PaymasterParam  } from "@arcana/scw"; //From npm
 
   import { AuthProvider } from "@arcana/auth"; //From npm
 
-  const erc20abi = [
-    {
-      inputs: [],
-      stateMutability: "nonpayable",
-      type: "constructor",
-    },
-    {
-      anonymous: false,
-      inputs: [
-        {
-          indexed: true,
-          internalType: "address",
-          name: "owner",
-          type: "address",
-        },
-        {
-          indexed: true,
-          internalType: "address",
-          name: "spender",
-          type: "address",
-        },
-        {
-          indexed: false,
-          internalType: "uint256",
-          name: "value",
-          type: "uint256",
-        },
-      ],
-      name: "Approval",
-      type: "event",
-    },
-    {
-      anonymous: false,
-      inputs: [
-        {
-          indexed: true,
-          internalType: "address",
-          name: "previousOwner",
-          type: "address",
-        },
-        {
-          indexed: true,
-          internalType: "address",
-          name: "newOwner",
-          type: "address",
-        },
-      ],
-      name: "OwnershipTransferred",
-      type: "event",
-    },
-    {
-      anonymous: false,
-      inputs: [
-        {
-          indexed: true,
-          internalType: "address",
-          name: "from",
-          type: "address",
-        },
-        {
-          indexed: true,
-          internalType: "address",
-          name: "to",
-          type: "address",
-        },
-        {
-          indexed: false,
-          internalType: "uint256",
-          name: "value",
-          type: "uint256",
-        },
-      ],
-      name: "Transfer",
-      type: "event",
-    },
-    {
-      inputs: [
-        {
-          internalType: "address",
-          name: "owner",
-          type: "address",
-        },
-        {
-          internalType: "address",
-          name: "spender",
-          type: "address",
-        },
-      ],
-      name: "allowance",
-      outputs: [
-        {
-          internalType: "uint256",
-          name: "",
-          type: "uint256",
-        },
-      ],
-      stateMutability: "view",
-      type: "function",
-    },
-    {
-      inputs: [
-        {
-          internalType: "address",
-          name: "spender",
-          type: "address",
-        },
-        {
-          internalType: "uint256",
-          name: "amount",
-          type: "uint256",
-        },
-      ],
-      name: "approve",
-      outputs: [
-        {
-          internalType: "bool",
-          name: "",
-          type: "bool",
-        },
-      ],
-      stateMutability: "nonpayable",
-      type: "function",
-    },
-    {
-      inputs: [
-        {
-          internalType: "address",
-          name: "account",
-          type: "address",
-        },
-      ],
-      name: "balanceOf",
-      outputs: [
-        {
-          internalType: "uint256",
-          name: "",
-          type: "uint256",
-        },
-      ],
-      stateMutability: "view",
-      type: "function",
-    },
-    {
-      inputs: [],
-      name: "decimals",
-      outputs: [
-        {
-          internalType: "uint8",
-          name: "",
-          type: "uint8",
-        },
-      ],
-      stateMutability: "view",
-      type: "function",
-    },
-    {
-      inputs: [
-        {
-          internalType: "address",
-          name: "spender",
-          type: "address",
-        },
-        {
-          internalType: "uint256",
-          name: "subtractedValue",
-          type: "uint256",
-        },
-      ],
-      name: "decreaseAllowance",
-      outputs: [
-        {
-          internalType: "bool",
-          name: "",
-          type: "bool",
-        },
-      ],
-      stateMutability: "nonpayable",
-      type: "function",
-    },
-    {
-      inputs: [
-        {
-          internalType: "address",
-          name: "spender",
-          type: "address",
-        },
-        {
-          internalType: "uint256",
-          name: "addedValue",
-          type: "uint256",
-        },
-      ],
-      name: "increaseAllowance",
-      outputs: [
-        {
-          internalType: "bool",
-          name: "",
-          type: "bool",
-        },
-      ],
-      stateMutability: "nonpayable",
-      type: "function",
-    },
-    {
-      inputs: [],
-      name: "name",
-      outputs: [
-        {
-          internalType: "string",
-          name: "",
-          type: "string",
-        },
-      ],
-      stateMutability: "view",
-      type: "function",
-    },
-    {
-      inputs: [],
-      name: "owner",
-      outputs: [
-        {
-          internalType: "address",
-          name: "",
-          type: "address",
-        },
-      ],
-      stateMutability: "view",
-      type: "function",
-    },
-    {
-      inputs: [],
-      name: "renounceOwnership",
-      outputs: [],
-      stateMutability: "nonpayable",
-      type: "function",
-    },
-    {
-      inputs: [],
-      name: "symbol",
-      outputs: [
-        {
-          internalType: "string",
-          name: "",
-          type: "string",
-        },
-      ],
-      stateMutability: "view",
-      type: "function",
-    },
-    {
-      inputs: [],
-      name: "totalSupply",
-      outputs: [
-        {
-          internalType: "uint256",
-          name: "",
-          type: "uint256",
-        },
-      ],
-      stateMutability: "view",
-      type: "function",
-    },
-    {
-      inputs: [
-        {
-          internalType: "address",
-          name: "to",
-          type: "address",
-        },
-        {
-          internalType: "uint256",
-          name: "amount",
-          type: "uint256",
-        },
-      ],
-      name: "transfer",
-      outputs: [
-        {
-          internalType: "bool",
-          name: "",
-          type: "bool",
-        },
-      ],
-      stateMutability: "nonpayable",
-      type: "function",
-    },
-    {
-      inputs: [
-        {
-          internalType: "address",
-          name: "from",
-          type: "address",
-        },
-        {
-          internalType: "address",
-          name: "to",
-          type: "address",
-        },
-        {
-          internalType: "uint256",
-          name: "amount",
-          type: "uint256",
-        },
-      ],
-      name: "transferFrom",
-      outputs: [
-        {
-          internalType: "bool",
-          name: "",
-          type: "bool",
-        },
-      ],
-      stateMutability: "nonpayable",
-      type: "function",
-    },
-    {
-      inputs: [
-        {
-          internalType: "address",
-          name: "newOwner",
-          type: "address",
-        },
-      ],
-      name: "transferOwnership",
-      outputs: [],
-      stateMutability: "nonpayable",
-      type: "function",
-    },
-  ];
+ import {sessionTestAbi, erc20abi} from './utils'
 
   let provider, wallet;
 
@@ -365,6 +37,7 @@
   // let arcana_app_id = "xar_test_7c27043e6263eff62c6b3a348d613f5b6c9f2527";
   // let arcana_app_id = "xar_live_10df430d374e1e9505615958f9965b7fbeb894d7";
   let arcana_app_id = "xar_dev_1e3ee6a5cecc593d0dac2e1893dbe7534a174ac4"; // Arbitrum sepolia bico paymaster
+  //  let arcana_app_id = "xar_test_92dfb47e769cd6304669fca1877963750b093965"; // Arbitrum sepolia bico paymaster
   /// ~~~~~~~ Arcana Wallet ~~~~~~~~~
 
   async function arcanaWallet() {
@@ -407,7 +80,7 @@
     //@ts-ignore
     console.log("window.arcana.provider", window.arcana.provider);
     //@ts-ignore
-    await scWallet.init(arcana_app_id, window.arcana.provider, undefined);
+    await scWallet.init(arcana_app_id, window.arcana.provider, undefined, 0);
     scwAddress = await scWallet.getSCWAddress();
     //@ts-ignore
     window.scwi = scWallet;
@@ -454,39 +127,15 @@
   // ~~~~~ Session management ~~~~~~
   let sess;
   async function initSession() {
-    sess = scWallet.initSession({
-      storageType: 0,
-    });
+    
+    sess = scWallet.initSession(StorageType.LOCAL_STORAGE);
   }
+  const LINK_ARB_SEPOLIA = "0xb1D4538B4571d411F07960EF2838Ce337FE1E80E";
+  const LINK_BSC_TESTNET = "0x84b9B910527Ad5C03A9Ca831909E21e236EA7b06";
   const USDC_ARB_SEPOLIA = "0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d";
   const USDC_BSC_TESTNET = "0x64544969ed7EBf5f083679233325356EbE738930";
-
+  const XNYT_ARB_SEPOLIA = "0xDC814506A7ed9BEe200c845fb04ECdAAb0ea2811";
   // ~~~~ SCW SDK ~~~~~
-
-  async function crScwSession() {
-    let contractAddress;
-
-    switch (scWallet.chain_id) {
-      case 97:
-        contractAddress = USDC_BSC_TESTNET;
-        break;
-      case 421614:
-        contractAddress = USDC_ARB_SEPOLIA;
-        break;
-      default:
-        contractAddress = USDC_ARB_SEPOLIA;
-    }
-
-    const config: CreateSessionParam = {
-      contractAddress,
-      functionSelector: "transfer(address,uint256)",
-      validUntil: 0,
-      validAfter: 0,
-      valueLimit: 0,
-    };
-
-    await scWallet.createSession(config);
-  }
 
   type DoConfig = {
     tx: {
@@ -497,38 +146,8 @@
   };
 
   let inputValue = "1";
-  async function scwSessionTx() {
-    let contractAddress;
 
-    switch (scWallet.chain_id) {
-      case 97:
-        contractAddress = USDC_BSC_TESTNET;
-        break;
-      case 421614:
-        contractAddress = USDC_ARB_SEPOLIA;
-        break;
-      default:
-        contractAddress = USDC_ARB_SEPOLIA;
-    }
-    // const amount = parseEther( "0.01");
-    const amount = inputValue;
-    const Erc20Interface = new Interface(erc20abi);
-    const toAddress = "0x7a8713E21e7434dC5441Fb666D252D13F380a97d";
-    const encodedData = Erc20Interface.encodeFunctionData("transfer", [
-      toAddress,
-      amount,
-    ]);
-
-    const sendErc20Tx = {
-      to: contractAddress,
-      data: encodedData,
-      value: 0,
-    };
-
-    await scWallet.doSessionTx(sendErc20Tx);
-  }
-
-  function getErc20Contract(chainId: number) {
+  function getUsdcContract(chainId: number) {
     let contractAddress;
 
     switch (chainId) {
@@ -545,16 +164,48 @@
     return contractAddress;
   }
 
+  function getLinkContract(chainId: number): string {
+    let contractAddress;
+
+    switch (chainId) {
+      case 97:
+        contractAddress = LINK_BSC_TESTNET;
+        break;
+      case 421614:
+        contractAddress = LINK_ARB_SEPOLIA;
+        break;
+      default:
+        contractAddress = LINK_ARB_SEPOLIA;
+    }
+
+    return contractAddress;
+  }
+
+  async function crScwSession() {
+    const contractAddress = "0xFeCD581c539f8858c556Ab8FEf681975a6A25ACa";
+    const functionSelector = "deposit()";
+    const config: CreateSessionParam = {
+      contractAddress: getUsdcContract(scWallet.chain_id)  , //: XNYT_ARB_SEPOLIA ,//getLinkContract(scWallet.chain_id),
+      functionSelector: "transfer(address,uint256)",
+      validUntil: 0,
+      validAfter: 0,
+      valueLimit: 10,
+    };
+
+    await scWallet.createSession(config);
+  }
+
   async function scwTx() {
     let amount = inputValue;
-
-    const erc20Address = getErc20Contract(scWallet.chain_id);
+    //"0x84b9B910527Ad5C03A9Ca831909E21e236EA7b06"
+    // XNYT_ARB_SEPOLIA; //getLinkContract(scWallet.chain_id) // 
+    const erc20Address =  getLinkContract(scWallet.chain_id) // getUsdcContract(scWallet.chain_id);
     const toAddress = "0x7a8713E21e7434dC5441Fb666D252D13F380a97d";
     const Erc20Interface = new Interface(erc20abi);
 
     const encodedData = Erc20Interface.encodeFunctionData("transfer", [
       toAddress,
-      BigInt(amount),
+      amount,
     ]);
 
     // You need to create transaction objects of the following interface
@@ -574,6 +225,35 @@
     tx = await tx.wait();
     console.log(`Transfer done ${tx.userOpHash}`);
   }
+
+  async function scwTxNative() {
+    let amount = inputValue;
+    //"0x84b9B910527Ad5C03A9Ca831909E21e236EA7b06"
+    const erc20Address = XNYT_ARB_SEPOLIA; //getLinkContract(scWallet.chain_id) // getErc20Contract(scWallet.chain_id);
+    const toAddress = "0xFeCD581c539f8858c556Ab8FEf681975a6A25ACa";
+    const contractInterface = new Interface(sessionTestAbi);
+
+    const encodedData = contractInterface.encodeFunctionData("deposit", []);
+
+    // You need to create transaction objects of the following interface
+    const tx1 = {
+      from: scWallet.getSCWAddress(),
+      to: toAddress, // destination smart contract address
+      data: encodedData,
+      value : amount
+    };
+
+    /// Normal txn
+    // let tx = await scWallet.doTx(tx1);
+
+    /// Session txn
+    let tx = await scWallet.doTx(tx1, {
+      session: "4f871131ef"// true,
+    });
+    tx = await tx.wait();
+    console.log(`Transfer done ${tx.userOpHash}`);
+  }
+
 </script>
 
 <main>
@@ -603,8 +283,8 @@
     <button on:click={initSession}>Init Session</button>
     <button on:click={sendGaslessTx}>Send SCW Transaction</button>
     <button on:click={crScwSession}>Create Session through SCW SDK</button>
-    <button on:click={scwSessionTx}>Send Session Txn through SCW SDK</button>
     <button on:click={scwTx}>✨ Txn using session</button>
+    <button on:click={scwTxNative}>✨ Native token transfer using session</button>
   </article>
 
   <article style="width: 50%;">
@@ -623,5 +303,4 @@
       </fieldset>
     </form>
   </article>
-
 </main>
