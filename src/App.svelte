@@ -209,7 +209,7 @@
     // XNYT_ARB_SEPOLIA; //getLinkContract(scWallet.chain_id) // 
     const erc20Address =  getUsdcContract(scWallet.chain_id) // getUsdcContract(scWallet.chain_id);
     // const toAddress = "0x7a8713E21e7434dC5441Fb666D252D13F380a97d";
-    const toAddress = "0xE2Dae0f0F6EE2F3b67EC1b911D59FF92e678388e";
+    const toAddress = "0x7a8713E21e7434dC5441Fb666D252D13F380a97d";
     const Erc20Interface = new Interface(erc20abi);
 
     const encodedData = Erc20Interface.encodeFunctionData("transfer", [
