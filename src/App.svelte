@@ -187,12 +187,12 @@
     const contractAddress = "0xFeCD581c539f8858c556Ab8FEf681975a6A25ACa";
     const functionSelector = "deposit()";
     const rules = [{
-      offset: 0,
-      condition: 0,
-      referenceValue: "0x7a8713E21e7434dC5441Fb666D252D13F380a97d",
+      offset: 32,
+      condition: 1,
+      referenceValue: 5n,
     }]
     const config = {
-      contractAddress: getUsdcContract(scWallet.chain_id)  , //: XNYT_ARB_SEPOLIA ,//getLinkContract(scWallet.chain_id),
+      contractAddress: getLinkContract(scWallet.chain_id)  , //: XNYT_ARB_SEPOLIA ,//getLinkContract(scWallet.chain_id),
       functionSelector: "transfer(address,uint256)",
       validUntil: 0,
       validAfter: 0,
@@ -207,14 +207,14 @@
     let amount = inputValue;
     //"0x84b9B910527Ad5C03A9Ca831909E21e236EA7b06"
     // XNYT_ARB_SEPOLIA; //getLinkContract(scWallet.chain_id) // 
-    const erc20Address =  getUsdcContract(scWallet.chain_id) // getUsdcContract(scWallet.chain_id);
+    const erc20Address =  getLinkContract(scWallet.chain_id) // getUsdcContract(scWallet.chain_id);
     // const toAddress = "0x7a8713E21e7434dC5441Fb666D252D13F380a97d";
     const toAddress = "0x7a8713E21e7434dC5441Fb666D252D13F380a97d";
     const Erc20Interface = new Interface(erc20abi);
 
     const encodedData = Erc20Interface.encodeFunctionData("transfer", [
       toAddress,
-      amount,
+      BigInt(amount),
     ]);
 
     // You need to create transaction objects of the following interface
@@ -229,7 +229,7 @@
 
     /// Session txn
     let tx = await scWallet.doTx(tx1, {
-      session: true,
+      session: "433794fc3d",
     });
     tx = await tx.wait();
     console.log(`Transfer done ${tx.userOpHash}`);
@@ -257,7 +257,7 @@
 
     /// Session txn
     let tx = await scWallet.doTx(tx1, {
-      session: "4f871131ef"// true,
+      session: "433794fc3d"// true,
     });
     tx = await tx.wait();
     console.log(`Transfer done ${tx.userOpHash}`);
